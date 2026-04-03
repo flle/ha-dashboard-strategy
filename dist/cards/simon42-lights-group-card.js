@@ -92,13 +92,21 @@ class Simon42LightsGroupCard extends HTMLElement {
       .map(e => e.entity_id);
   }
 
+  _lightStateMatchesGroup(stateObj, groupOn) {
+    if (!stateObj) return false;
+    const s = stateObj.state;
+    if (groupOn) return s === 'on';
+    // Off group: explicit off plus unavailable/unknown (e.g. power cut → unavailable)
+    return s === 'off' || s === 'unavailable' || s === 'unknown';
+  }
+
   _getRelevantLights() {
     const allLights = this._getFilteredLightEntities();
-    const targetState = this._config.group_type === 'on' ? 'on' : 'off';
-    
+    const groupOn = this._config.group_type === 'on';
+
     const relevantLights = allLights.filter(id => {
       const state = this._hass.states[id];
-      return state && state.state === targetState;
+      return this._lightStateMatchesGroup(state, groupOn);
     });
     
     // Sortiere nach last_changed

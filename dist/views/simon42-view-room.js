@@ -515,15 +515,22 @@ class Simon42ViewRoomStrategy {
             heading_style: "title",
             icon: "mdi:lightbulb"
           },
-          ...roomEntities.lights.map(entity => ({
-            type: "tile",
-            entity: entity,
-            name: stripAreaName(entity, area, hass),
-            features: [{ type: "light-brightness" }],
-            vertical: false,
-            features_position: "inline",
-            state_content: "last_changed"
-          }))
+          ...roomEntities.lights.map(entity => {
+            const lightState = hass.states[entity];
+            const isOn = lightState && lightState.state === 'on';
+            const tile = {
+              type: "tile",
+              entity: entity,
+              name: stripAreaName(entity, area, hass),
+              vertical: false,
+              state_content: "last_changed"
+            };
+            if (isOn) {
+              tile.features = [{ type: "light-brightness" }];
+              tile.features_position = "inline";
+            }
+            return tile;
+          })
         ]
       });
     }
